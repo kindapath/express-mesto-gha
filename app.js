@@ -1,11 +1,22 @@
 const express = require('express');
-
-const { PORT = 3000 } = process.env;
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
 
 const app = express();
 
-app.listen(PORT, () => {
-  console.log('My first server ever');
+const { PORT = 3000 } = process.env;
 
-  console.log('My second server ever');
+mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
+  useNewUrlParser: true,
+})
+  .then((db) => console.log('db is connected'))
+  .catch((err) => console.log(err));
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use('/users', require('./routes/users'));
+
+app.listen(PORT, () => {
+  console.log('Trying to make my own server with APIs!');
 });
