@@ -11,9 +11,7 @@ const routerCards = require('./routes/cards');
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   useNewUrlParser: true,
-})
-  .then(() => console.log('db is connected'))
-  .catch((err) => console.log(err));
+});
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -31,5 +29,5 @@ app.use('/users', routerUsers);
 app.use('/cards', routerCards);
 
 app.listen(PORT, () => {
-  console.log('Trying to make my own server with APIs!');
+
 });

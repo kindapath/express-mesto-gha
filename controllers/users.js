@@ -13,14 +13,23 @@ module.exports.getUserById = (req, res) => {
     .then((user) => {
       res.send(user);
     })
-    .catch((err) => res.status(501).send({ message: err.message }));
+    .catch((err) => {
+      const ERROR_CODE = 404;
+
+      if (err.name === 'CastError') {
+        return res.status(ERROR_CODE).send(
+          { message: 'Пользователь по указанному _id не найден.' },
+        );
+      }
+
+      return res.status(500).send({ message: err.message });
+    });
 };
 
 module.exports.createUser = (req, res) => {
   const {
     name, about, avatar,
   } = req.body;
-
   User.create({ name, about, avatar })
     .then((user) => {
       res.send(user);
@@ -28,7 +37,7 @@ module.exports.createUser = (req, res) => {
     .catch((err) => {
       const ERROR_CODE = 400;
 
-      if (err.name === 'SomeErrorName') {
+      if (err.name === 'ValidationError') {
         return res.status(ERROR_CODE).send(
           { message: 'Переданы некорректные данные при создании пользователя.' },
         );
@@ -55,7 +64,23 @@ module.exports.editProfile = (req, res) => {
     .then((user) => {
       res.send(user);
     })
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      const ERROR_CODE = 400;
+      const NOTFOUND_CODE = 404;
+
+      if (err.name === 'ValidationError') {
+        return res.status(ERROR_CODE).send(
+          { message: 'Переданы некорректные данные при обновлении профиля.' },
+        );
+      }
+      if (err.name === 'CastError') {
+        return res.status(NOTFOUND_CODE).send(
+          { message: 'Пользователь по указанному _id не найден.' },
+        );
+      }
+
+      return res.status(500).send({ message: err.message });
+    });
 };
 
 module.exports.updateAvatar = (req, res) => {
@@ -75,5 +100,21 @@ module.exports.updateAvatar = (req, res) => {
     .then((user) => {
       res.send(user);
     })
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch((err) => {
+      const ERROR_CODE = 400;
+      const NOTFOUND_CODE = 404;
+
+      if (err.name === 'ValidationError') {
+        return res.status(ERROR_CODE).send(
+          { message: 'Переданы некорректные данные при обновлении аватара.' },
+        );
+      }
+      if (err.name === 'CastError') {
+        return res.status(NOTFOUND_CODE).send(
+          { message: 'Пользователь по указанному _id не найден.' },
+        );
+      }
+
+      return res.status(500).send({ message: err.message });
+    });
 };
