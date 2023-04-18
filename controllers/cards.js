@@ -4,25 +4,23 @@ module.exports.getAllCards = (req, res) => {
   Card.find({})
     .populate(['owner'])
     .then((cards) => {
-      res.send({ data: cards });
+      res.send(cards);
     })
     .catch((err) => res.status(500).send({ message: err.message }));
 };
 
 module.exports.createCard = (req, res) => {
-  console.log(req.user._id); // _id станет доступен
-
   const {
-    _id,
+    _id: userId,
   } = req.user;
 
   const {
     name, link,
   } = req.body;
 
-  Card.create({ owner: _id, name, link })
+  Card.create({ owner: userId, name, link })
     .then((card) => {
-      res.send({ data: card });
+      res.send(card);
     })
     .catch((err) => res.status(500).send({ message: err.message }));
 };
@@ -34,7 +32,47 @@ module.exports.deleteCard = (req, res) => {
 
   Card.findByIdAndRemove(cardId)
     .then((card) => {
-      res.send({ data: card });
+      res.send(card);
+    })
+    .catch((err) => res.status(500).send({ message: err.message }));
+};
+
+module.exports.likeCard = (req, res) => {
+  const {
+    cardId,
+  } = req.params;
+
+  const {
+    _id: userId,
+  } = req.user;
+
+  Card.findByIdAndUpdate(
+    cardId,
+    { $addToSet: { likes: userId } },
+    { new: true },
+  )
+    .then((card) => {
+      res.send(card);
+    })
+    .catch((err) => res.status(500).send({ message: err.message }));
+};
+
+module.exports.dislikeCard = (req, res) => {
+  const {
+    cardId,
+  } = req.params;
+
+  const {
+    _id: userId,
+  } = req.user;
+
+  Card.findByIdAndUpdate(
+    cardId,
+    { $pull: { likes: userId } },
+    { new: true },
+  )
+    .then((card) => {
+      res.send(card);
     })
     .catch((err) => res.status(500).send({ message: err.message }));
 };
