@@ -1,3 +1,10 @@
+class ValidationError extends Error {
+  constructor(msg) {
+    super(msg);
+    this.name = 'ValidationError';
+  }
+}
+
 const User = require('../models/user');
 
 module.exports.getAllUsers = (req, res) => {
@@ -11,13 +18,22 @@ module.exports.getAllUsers = (req, res) => {
 module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
     .then((user) => {
+      if (user === null) {
+        throw new ValidationError();
+      }
       res.send(user);
     })
     .catch((err) => {
-      const ERROR_CODE = 404;
+      const ERROR_CODE = 400;
+      const NOTFOUND_CODE = 404;
 
       if (err.name === 'CastError') {
         return res.status(ERROR_CODE).send(
+          { message: 'Передан некорректный _id.' },
+        );
+      }
+      if (err.name === 'ValidationError') {
+        return res.status(NOTFOUND_CODE).send(
           { message: 'Пользователь по указанному _id не найден.' },
         );
       }
