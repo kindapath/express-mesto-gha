@@ -1,32 +1,6 @@
-const mongoose = require('mongoose');
-
-const ValidationError = require('../errors/ValidationError');
-const CastError = require('../errors/CastError');
+const ErrorHandler = require('../errors/ErrorHandler');
 
 const User = require('../models/user');
-
-function sendError({
-  err, validationMessage, castMessage, res,
-}) {
-  const ERROR_CODE = 400;
-  const NOTFOUND_CODE = 404;
-  const DEFAULT_CODE = 500;
-
-  if (err.name === 'ValidationError') {
-    return res.status(ERROR_CODE).send(
-      { message: validationMessage },
-    );
-  }
-
-  if (err.name === 'CastError') {
-    return res.status(NOTFOUND_CODE).send(
-      { message: castMessage },
-    );
-  }
-
-  sendError(res);
-  return res.status(DEFAULT_CODE).send({ message: err.message });
-}
 
 module.exports.getAllUsers = (req, res) => {
   User.find({})
@@ -39,22 +13,21 @@ module.exports.getAllUsers = (req, res) => {
         res,
       };
 
-      sendError(errorInfo);
+      ErrorHandler.sendError(errorInfo);
     });
 };
 
 module.exports.getUserById = (req, res) => {
   const { userId } = req.params;
+  ErrorHandler.isValidObjectId({
+    id: userId,
+    res,
+    message: 'Передан некорректный _id пользователя.',
+  });
 
-  if (!mongoose.isValidObjectId(userId)) {
-    res.status(400).send({ message: 'Передан некорректный _id.' });
-    throw new ValidationError();
-  }
   User.findById(userId)
     .then((user) => {
-      if (user === null) {
-        throw new CastError();
-      }
+      ErrorHandler.checkIfNull(user);
 
       res.send(user);
     })
@@ -66,7 +39,7 @@ module.exports.getUserById = (req, res) => {
         castMessage: 'Пользователь по указанному _id не найден.',
       };
 
-      sendError(errorInfo);
+      ErrorHandler.sendError(errorInfo);
     });
 };
 
@@ -85,7 +58,7 @@ module.exports.createUser = (req, res) => {
         validationMessage: 'Переданы некорректные данные при создании пользователя.',
       };
 
-      sendError(errorInfo);
+      ErrorHandler.sendError(errorInfo);
     });
 };
 
@@ -114,7 +87,7 @@ module.exports.editProfile = (req, res) => {
         castMessage: 'Пользователь по указанному _id не найден.',
       };
 
-      sendError(errorInfo);
+      ErrorHandler.sendError(errorInfo);
     });
 };
 
@@ -143,6 +116,6 @@ module.exports.updateAvatar = (req, res) => {
         castMessage: 'Пользователь по указанному _id не найден.',
       };
 
-      sendError(errorInfo);
+      ErrorHandler.sendError(errorInfo);
     });
 };

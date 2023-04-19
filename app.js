@@ -28,6 +28,10 @@ app.use('/users', routerUsers);
 
 app.use('/cards', routerCards);
 
+app.use('*', (req, res) => {
+  res.status(404).send({ message: 'Некорректный путь или запрос.' });
+});
+
 app.listen(PORT, () => {
 
 });
