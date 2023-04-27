@@ -13,10 +13,7 @@ module.exports.getAllUsers = (req, res) => {
 module.exports.getCurrentUser = (req, res) => {
   const {
     _id: userId,
-  } = req.user._id;
-
-  console.log(req.user); // FIX: req.user doesnt show anything in console
-
+  } = req.user;
   User.findById(userId)
     .orFail(() => {
       throw new Error('Not found');

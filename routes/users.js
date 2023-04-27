@@ -10,11 +10,11 @@ const {
 
 router.get('/', getAllUsers);
 
+router.get('/me', getCurrentUser);
+
 router.get('/:userId', getUserById);
 
 router.patch('/me', editProfile);
-
-router.get('/me', getCurrentUser);
 
 router.patch('/me/avatar', updateAvatar);
 
