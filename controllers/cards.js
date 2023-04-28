@@ -34,7 +34,14 @@ module.exports.deleteCard = (req, res) => {
     cardId,
   } = req.params;
 
-  Card.findByIdAndRemove(cardId)
+  const {
+    _id: userId,
+  } = req.user;
+
+  Card.findOneAndRemove({
+    _id: cardId,
+    owner: userId,
+  })
     .orFail(() => {
       throw new Error('Not found');
     })
@@ -43,7 +50,7 @@ module.exports.deleteCard = (req, res) => {
     })
     .catch((err) => {
       if (err.message === 'Not found') {
-        res.status(404).send({ message: 'Карточка не найдена.' });
+        res.status(404).send({ message: 'Карточка не найдена или вы не можете ее удалить.' });
       } else if (err.name === 'CastError') {
         res.status(400).send({ message: 'Некорректный id.' });
       } else {

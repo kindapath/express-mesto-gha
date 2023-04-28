@@ -1,59 +1,44 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
+const NotFoundError = require('../errors/not-found-err');
 
-module.exports.getAllUsers = (req, res) => {
+module.exports.getAllUsers = (req, res, next) => {
   User.find({})
     .then((users) => {
       res.send(users);
     })
-    .catch((err) => res.status(500).send({ message: err.message }));
+    .catch(next);
 };
 
-module.exports.getCurrentUser = (req, res) => {
+module.exports.getCurrentUser = (req, res, next) => {
   const {
     _id: userId,
   } = req.user;
   User.findById(userId)
     .orFail(() => {
-      throw new Error('Not found');
+      throw new NotFoundError('Пользователь не найден.');
     })
     .then((user) => {
       res.send(user);
     })
-    .catch((err) => {
-      if (err.message === 'Not found') {
-        res.status(404).send({ message: 'Пользователь не найден.' });
-      } else if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Некорректный id.' });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
-    });
+    .catch(next);
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params;
 
   User.findById(userId)
     .orFail(() => {
-      throw new Error('Not found');
+      throw new NotFoundError('Пользователь не найден.');
     })
     .then((user) => {
       res.send(user);
     })
-    .catch((err) => {
-      if (err.message === 'Not found') {
-        res.status(404).send({ message: 'Пользователь не найден.' });
-      } else if (err.name === 'CastError') {
-        res.status(400).send({ message: 'Некорректный id.' });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
-    });
+    .catch(next);
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -68,16 +53,10 @@ module.exports.createUser = (req, res) => {
     .then((user) => {
       res.status(201).send(user);
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при создании пользователя.' });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
-    });
+    .catch(next);
 };
 
-module.exports.editProfile = (req, res) => {
+module.exports.editProfile = (req, res, next) => {
   const {
     name, about,
   } = req.body;
@@ -91,23 +70,15 @@ module.exports.editProfile = (req, res) => {
     runValidators: true, // данные будут валидированы перед изменением
   })
     .orFail(() => {
-      throw new Error('Not found');
+      throw new NotFoundError('Пользователь не найден.');
     })
     .then((user) => {
       res.send(user);
     })
-    .catch((err) => {
-      if (err.message === 'Not found') {
-        res.status(404).send({ message: 'Пользователь не найден.' });
-      } else if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при обновлении профиля. ' });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
-    });
+    .catch(next);
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const {
     avatar,
   } = req.body;
@@ -126,18 +97,10 @@ module.exports.updateAvatar = (req, res) => {
     .then((user) => {
       res.send(user);
     })
-    .catch((err) => {
-      if (err.message === 'Not found') {
-        res.status(404).send({ message: 'Пользователь не найден.' });
-      } else if (err.name === 'ValidationError') {
-        res.status(400).send({ message: 'Переданы некорректные данные при обновлении аватара. ' });
-      } else {
-        res.status(500).send({ message: err.message });
-      }
-    });
+    .catch(next);
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
@@ -153,10 +116,5 @@ module.exports.login = (req, res) => {
         .send({ email, token })
         .end();
     })
-    .catch((err) => {
-      // ошибка аутентификации
-      res
-        .status(401)
-        .send({ message: err.message });
-    });
+    .catch(next);
 };

@@ -26,8 +26,40 @@ app.use('/users', auth, routerUsers);
 
 app.use('/cards', auth, routerCards);
 
-app.use('*', (req, res) => {
-  res.status(404).send({ message: 'Некорректный путь или запрос.' });
+// app.use('*', (req, res) => {
+//   res.status(404).send({ message: 'Некорректный путь или запрос.' });
+// });
+
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+  console.log(err.name);
+
+  if (err.name === 'AuthenticationError') {
+    res.status(err.statusCode).send({ message: err.message });
+  }
+
+  if (err.name === 'NotFoundError') {
+    res.status(404).send({ message: err.message });
+  }
+
+  if (err.name === 'CastError') {
+    res.status(400).send({ message: 'Некорректный id.' });
+    return;
+  }
+
+  if (err.name === 'ValidationError') {
+    res.status(400).send({ message: 'Переданы некорректные данные.' });
+    return;
+  }
+
+  res
+    .status(statusCode)
+    .send({
+      // проверяем статус и выставляем сообщение в зависимости от него
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка'
+        : message,
+    });
 });
 
 app.listen(PORT, () => {
