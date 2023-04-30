@@ -106,7 +106,7 @@ module.exports.login = (req, res, next) => {
   return User.findUserByCredentials(email, password)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, 'secret-key', { expiresIn: '7d' });
-      console.log(token);
+
       res
         .cookie('jwt', token, {
           // token - наш JWT токен, который мы отправляем
