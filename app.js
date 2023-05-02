@@ -4,8 +4,6 @@ const cookieParser = require('cookie-parser');
 const { celebrate, Joi } = require('celebrate');
 const { errors } = require('celebrate');
 
-const regex = /(http)|(https):\/\/(www\.)?[a-zA-Z0-9._~:/?#[]@!$&'()\*\+,;=]\.[a-zA-Z]\/[a-zA-Z]\/[a-zA-Z]\/[a-zA-Z]/;
-
 const app = express();
 
 const { PORT = 3000 } = process.env;
@@ -14,6 +12,7 @@ const routerUsers = require('./routes/users');
 const routerCards = require('./routes/cards');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+const { regex } = require('./constatant/constants');
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   useNewUrlParser: true,
@@ -52,6 +51,10 @@ app.use((err, req, res, next) => {
   if (err.code === 11000) {
     res.status(409).send({ message: 'Пользователь с таким email уже существует.' });
     return;
+  }
+
+  if (err.name === 'ForbiddenError') {
+    res.status(err.statusCode).send({ message: err.message });
   }
 
   if (err.name === 'AuthenticationError') {

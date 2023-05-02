@@ -2,8 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 const validator = require('validator');
 const AuthenticationError = require('../errors/authentication-err');
-
-const regex = /(http)|(https):\/\/(www\.)?[a-zA-Z0-9._~:/?#[]@!$&'()\*\+,;=]\.[a-zA-Z]\/[a-zA-Z]\/[a-zA-Z]\/[a-zA-Z]/;
+const { regex } = require('../constatant/constants');
 
 const userSchema = new mongoose.Schema({
   email: {
@@ -42,7 +41,7 @@ const userSchema = new mongoose.Schema({
       message: (props) => `${props.value} - неправильная ссылка!`,
     },
   },
-});
+}, { toJSON: { useProjection: true }, toObject: { useProjection: true } });
 
 userSchema.statics.findUserByCredentials = function findUserByCredentials(email, password) {
   return this.findOne({ email }).select('+password')

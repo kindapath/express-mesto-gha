@@ -1,3 +1,4 @@
+const ForbiddenError = require('../errors/forbidden-err');
 const NotFoundError = require('../errors/not-found-err');
 const Card = require('../models/card');
 
@@ -33,15 +34,16 @@ module.exports.deleteCard = (req, res, next) => {
     _id: userId,
   } = req.user;
 
-  Card.findOneAndRemove({
-    _id: cardId,
-    owner: userId,
-  })
+  Card.findById(cardId)
     .orFail(() => {
-      throw new NotFoundError('Карточка не найдена или вы не можете ее удалить.');
+      throw new NotFoundError('Такая карточка не найдена.');
     })
     .then((card) => {
-      res.send(card);
+      if (card.owner.toString() === userId) {
+        Card.findByIdAndRemove(cardId).then(() => res.send(card));
+      } else {
+        throw new ForbiddenError('Нет доступа');
+      }
     })
     .catch(next);
 };

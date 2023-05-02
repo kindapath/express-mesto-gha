@@ -2,8 +2,6 @@ const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
 Joi.objectId = require('joi-objectid')(Joi);
 
-const regex = /(http)|(https):\/\/(www\.)?[a-zA-Z0-9._~:/?#[]@!$&'()\*\+,;=]\.[a-zA-Z]\/[a-zA-Z]\/[a-zA-Z]\/[a-zA-Z]/;
-
 const {
   getAllUsers,
   getUserById,
@@ -11,6 +9,7 @@ const {
   updateAvatar,
   getCurrentUser,
 } = require('../controllers/users');
+const { regex } = require('../constatant/constants');
 
 router.get('/', getAllUsers);
 
