@@ -4,6 +4,8 @@ const cookieParser = require('cookie-parser');
 const { celebrate, Joi } = require('celebrate');
 const { errors } = require('celebrate');
 
+const regex = /(http)|(https):\/\/(www\.)?[a-zA-Z0-9._~:/?#[]@!$&'()\*\+,;=]\.[a-zA-Z]\/[a-zA-Z]\/[a-zA-Z]\/[a-zA-Z]/;
+
 const app = express();
 
 const { PORT = 3000 } = process.env;
@@ -19,7 +21,6 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(errors());
 
 app.post('/signup', celebrate({
   body: Joi.object().keys({
@@ -27,7 +28,8 @@ app.post('/signup', celebrate({
     password: Joi.string().required().min(8),
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string(),
+    avatar: Joi.string().regex(regex),
+
   }),
 }), createUser);
 
@@ -42,16 +44,13 @@ app.use('/users', auth, routerUsers);
 
 app.use('/cards', auth, routerCards);
 
+app.use(errors());
+
 app.use((err, req, res, next) => {
   const { statusCode = 500, message } = err;
-  console.log(err);
-
-  if (err.message === 'Validation failed') {
-    res.status(400).send({ message: 'Проверьте, чтобы введенные данные соответсвовали требованиям.' });
-  }
 
   if (err.code === 11000) {
-    res.status(400).send({ message: 'Пользователь с таким email уже существует.' });
+    res.status(409).send({ message: 'Пользователь с таким email уже существует.' });
     return;
   }
 
@@ -81,6 +80,7 @@ app.use((err, req, res, next) => {
         ? 'На сервере произошла ошибка'
         : message,
     });
+  next();
 });
 
 app.use('*', (req, res) => {
