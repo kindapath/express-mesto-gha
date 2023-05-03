@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 const NotFoundError = require('../errors/not-found-err');
+const ConflictError = require('../errors/conflict-err');
 
 module.exports.getAllUsers = (req, res, next) => {
   User.find({})
@@ -53,7 +54,13 @@ module.exports.createUser = (req, res, next) => {
     .then((user) => {
       res.status(201).send(user);
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.code === 11000) {
+        next(new ConflictError('Пользователь с таким email уже существует.'));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.editProfile = (req, res, next) => {
@@ -92,7 +99,7 @@ module.exports.updateAvatar = (req, res, next) => {
     runValidators: true,
   })
     .orFail(() => {
-      throw new Error('Not found');
+      throw new NotFoundError('Пользователь с указанным id не существует');
     })
     .then((user) => {
       res.send(user);

@@ -23,11 +23,8 @@ router.get('/:userId', celebrate({
 
 router.patch('/me', celebrate({
   body: Joi.object().keys({
-    email: Joi.string().email(),
-    password: Joi.string().min(8),
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string().regex(regex),
   }),
 }), editProfile);
 
